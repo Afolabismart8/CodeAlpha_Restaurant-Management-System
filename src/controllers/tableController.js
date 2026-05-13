@@ -1,21 +1,29 @@
 const Table = require("../models/tableModel");
 
-
-// CREATE TABLE
 exports.createTable = async (req, res) => {
   try {
-    const table = await Table.create(req.body);
-    const existingTable = await Table.findOne({tableNumber});
-    if (existingTable){
-        return res.status(409).json({
-            message: "Table has already been booked"
-        })
-    }       
+    const { tableNumber, capacity } = req.body;
+
+    // 1. CHECK FIRST (BEFORE CREATE)
+    const existingTable = await Table.findOne({ tableNumber: req.body.tableNumber });
+
+    if (existingTable) {
+      return res.status(409).json({
+        message: "Table has already been booked",
+      });
+    }
+
+    // 2. CREATE ONLY IF SAFE
+    const table = await Table.create({
+      tableNumber,
+      capacity,
+    });
 
     res.status(201).json({
       message: "Table created successfully",
       table,
     });
+
   } catch (err) {
     res.status(500).json({
       message: err.message,
